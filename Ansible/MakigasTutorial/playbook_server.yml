@@ -1,0 +1,16 @@
+---
+  - hosts: mahHosts
+    tasks:
+    - name: test
+      shell: echo hola
+    - name: instalar nginx
+      become: true
+      apt: name=nginx state=present 
+    - name: copiar html
+      become: true
+      copy:
+        src: index.html
+        dest: /var/www/html
+    - name: arrancar nginx
+      become: true
+      service: name=nginx state=restarted

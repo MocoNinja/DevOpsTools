@@ -1,0 +1,9 @@
+---
+#  - hosts: all
+  - hosts: mahHosts
+    tasks:
+    - name: Instalar vim
+      apt: name=vim state=present
+      become: true
+    - name: Saludar
+      shell: echo \"hola\"

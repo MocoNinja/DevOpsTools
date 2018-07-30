@@ -1,0 +1,34 @@
+---
+  - hosts: mahHosts
+    tasks:
+    - name: test
+      shell: echo hola
+    - name: instalar apache2
+      become: true
+      apt: name=apache2 update_cache=yes state=latest
+    - name: enabled mod_rewrite
+      become: true
+      apache2_module: name=rewrite state=present
+      notify:
+        - "arrancar apache"
+    - name: copiar html
+      become: true
+      copy:
+        src: index.html
+        dest: /var/www/html
+      notify:
+        - "arrancar apache"
+    - name: apache2 listen on port 8081
+      become: true
+      lineinfile: dest=/etc/apache2/ports.conf regexp="^Listen 80" line="Listen 8081" state=present
+      notify:
+        - "arrancar apache"
+    - name: apache2 virtualhost on port 8081
+      become: true
+      lineinfile: dest=/etc/apache2/sites-available/000-default.conf regexp="^<VirtualHost \*:80>" line="<VirtualHost *:8081>" state=present
+      notify:
+        - "arrancar apache"
+    handlers:
+      - name: arrancar apache
+        become: true
+        service: name=apache2 state=restarted
