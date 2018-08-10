@@ -1,0 +1,40 @@
+---
+  - hosts: php-dev
+    become: true
+    tasks:
+    - name: instalar servidor apache
+      apt: name=apache2 update_cache=yes state=present
+    - name: habilitar mod_rewrite
+      apache2_module: name=rewrite state=present
+    - name: deploy del index de prueba
+      copy:
+        src: index.php
+        dest: /var/www/html
+      notify: "arrancar apache"
+    - name: cambiar puerto esuchar apache
+      lineinfile: dest=/etc/apache2/ports.conf regexp="^Listen:80" line="Listen 6666" state=present
+      notify: "arrancar apache"
+    - name: instalar todo lo relacionado con PHP
+      apt: name={{item}} update_cache=yes state=present
+      with_items:
+         - php
+         - php-gd
+         - php-mysql
+         - php-mbstring
+         - php-xml
+         - php-curl
+         - php-crypt*
+         - libapache2-mod-php
+      notify: "arrancar apache"
+    - name: instalar todo lo relacionado con MYSQL
+      apt: name={{item}} update_cache=yes state=present
+      with_items:
+        - mysql-utilities
+        - mysql-server
+        - mysql-client
+      notify: "arrancar mysql"
+    handlers:
+      - name: arrancar apache
+        service: name=apache2 state=restarted
+      - name: arrancar mysql
+        service: name=mysql state=restarted
