@@ -2,6 +2,7 @@
   - hosts: php-dev
     become: true
     vars:
+      # COMPOSER
       instalador: /tmp/composer_install.php
       ejecutable: /usr/local/bin/composer
     tasks:
