@@ -1,6 +1,9 @@
 ---
   - hosts: php-dev
     become: true
+    vars:
+      instalador: /tmp/composer_install.php
+      ejecutable: /usr/local/bin/composer
     tasks:
     - name: instalar servidor apache
       apt: name=apache2 update_cache=yes state=present
@@ -15,7 +18,7 @@
       lineinfile: dest=/etc/apache2/ports.conf regexp="^Listen:80" line="Listen 6666" state=present
       notify: "arrancar apache"
     - name: instalar todo lo relacionado con PHP
-      apt: name={{item}} update_cache=yes state=present
+      apt: name="{{item}}" update_cache=yes state=present
       with_items:
          - php
          - php-gd
@@ -27,12 +30,25 @@
          - libapache2-mod-php
       notify: "arrancar apache"
     - name: instalar todo lo relacionado con MYSQL
-      apt: name={{item}} update_cache=yes state=present
+      apt: name="{{item}}" update_cache=yes state=present
       with_items:
         - mysql-utilities
         - mysql-server
         - mysql-client
       notify: "arrancar mysql"
+    - name: descargar composer
+      get_url:
+        url: https://getcomposer.org/installer
+        dest: "{{instalador}}"
+    - name: instalar composer
+      command: "{{item}}"
+      with_items:
+        - php "{{instalador}}"
+        - mv composer.phar "{{ejecutable}}"
+    - name: limpiar instalador composer
+      file:
+        path: "{{instalador}}"
+        state: absent
     handlers:
       - name: arrancar apache
         service: name=apache2 state=restarted
